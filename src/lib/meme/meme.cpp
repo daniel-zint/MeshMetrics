@@ -18,7 +18,9 @@ enum Metrics {
     max_edge = 10,
     avg_edge = 11,
     num_f = 12,
-    num_v = 13
+    num_v = 13,
+    has_zero_area = 14,
+    has_zero_edge = 15
 };
 
 double law_of_cosines(const double& a, const double& b, const double& c)
@@ -28,9 +30,9 @@ double law_of_cosines(const double& a, const double& b, const double& c)
     return std::acos(x) * (180.0 / M_PI);
 }
 
-std::array<double, 14> get_metrics(const MatrixXd& V, const MatrixXi& F)
+std::array<double, 16> get_metrics(const MatrixXd& V, const MatrixXi& F)
 {
-    std::array<double, 14> metrics;
+    std::array<double, 16> metrics;
     for (double& m : metrics) {
         m = 0;
     }
@@ -51,6 +53,7 @@ std::array<double, 14> get_metrics(const MatrixXd& V, const MatrixXi& F)
         const double c = (v0 - v2).norm();
 
         if (a == 0 || b == 0 || c == 0) {
+            metrics[Metrics::has_zero_edge] = 1;
             continue;
         }
 
@@ -72,6 +75,7 @@ std::array<double, 14> get_metrics(const MatrixXd& V, const MatrixXi& F)
             std::clamp(s * (s - a) * (s - b) * (s - c), 0.0, std::numeric_limits<double>::max()));
 
         if (area == 0) {
+            metrics[Metrics::has_zero_area] = 1;
             continue;
         }
 
@@ -112,9 +116,9 @@ std::array<double, 14> get_metrics(const MatrixXd& V, const MatrixXi& F)
     return metrics;
 }
 
-std::array<std::string, 14> get_metrics_names()
+std::array<std::string, 16> get_metrics_names()
 {
-    return std::array<std::string, 14>{
+    return std::array<std::string, 16>{
         "min_angle",
         "max_angle",
         "avg_angle",
@@ -128,7 +132,9 @@ std::array<std::string, 14> get_metrics_names()
         "max_edge",
         "avg_edge",
         "#F",
-        "#V"};
+        "#V",
+        "has_zero_area",
+        "has_zero_edge"};
 }
 
 } // namespace meme

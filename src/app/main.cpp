@@ -1,7 +1,6 @@
 #include <meme/meme.hpp>
 
 #include <igl/Timer.h>
-#include <igl/readMESH.h>
 #include <igl/read_triangle_mesh.h>
 #include <CLI/CLI.hpp>
 #include <filesystem>

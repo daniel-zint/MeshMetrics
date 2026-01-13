@@ -44,6 +44,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Dependencies
 include(libigl)
+include(pybind11)
 
 # Core library
 add_library(mesh_metrics)
@@ -80,6 +81,6 @@ endif()
 # ###############################################################################
 
 add_subdirectory(src/app)
-
+add_subdirectory(src/pymeme)
 
 
