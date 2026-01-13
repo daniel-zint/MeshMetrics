@@ -14,11 +14,12 @@ use_pymeme = True
 if use_pymeme:
     try:
         import pymeme
+
         use_pymeme = True
         print("Using pymeme for metric computation.")
     except ImportError:
         use_pymeme = False
-        print("pymeme not found, using Python implementation.")
+        print("WARNING: pymeme not found, using Python implementation.")
         pass
 else:
     print("Using Python implementation for metric computation.")
@@ -58,6 +59,7 @@ Installing pymeme (optional):
 
 """
 
+
 def get_metric_names():
     if use_pymeme:
         return pymeme.get_metric_names()
@@ -78,8 +80,10 @@ def get_metric_names():
             "#F",
             "#V",
         ]
-    
+
+
 metrics_names = get_metric_names()
+
 
 def law_of_cosines(a, b, c):
     x = (b**2 + c**2 - a**2) / (2 * b * c)
@@ -159,7 +163,6 @@ def compute_metrics_detailed(V, F):
     return metrics
 
 
-@profile
 def compute_metrics_compact(V, F):
     if F.shape[0] == 0:
         return []
@@ -254,6 +257,11 @@ def load_mesh(mesh_path):
 
 def mesh_metrics_compact(mesh_path):
     V, F = load_mesh(mesh_path)
+    if F.shape[0] == 0:
+        return []
+    if F.shape[1] != 3:
+        return []
+
     if use_pymeme:
         return pymeme.get_metrics(V, F)
     else:
@@ -354,7 +362,11 @@ if __name__ == "__main__":
         else:
             print("Using single thread.")
             for mesh_file in mesh_files:
-                metrics = mesh_metrics_compact(mesh_file)
+                try:
+                    metrics = mesh_metrics_compact(mesh_file)
+                except Exception as exc:
+                    print(f"Failed on {mesh_file}: {exc}")
+                    continue
                 if not metrics:
                     continue
                 non_empty_mesh_files += 1

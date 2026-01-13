@@ -32,6 +32,10 @@ double law_of_cosines(const double& a, const double& b, const double& c)
 
 std::array<double, 16> get_metrics(const MatrixXd& V, const MatrixXi& F)
 {
+    if (F.cols() != 3) {
+        throw("F has not the expected number of cols. F.cols() = " + F.cols());
+    }
+
     std::array<double, 16> metrics;
     for (double& m : metrics) {
         m = 0;
@@ -43,6 +47,10 @@ std::array<double, 16> get_metrics(const MatrixXd& V, const MatrixXi& F)
 
     metrics[Metrics::num_f] = F.rows();
     metrics[Metrics::num_v] = V.rows();
+
+    if (F.rows() == 0) {
+        return metrics;
+    }
 
     for (size_t i = 0; i < F.rows(); ++i) {
         const Vector3d& v0 = V.row(F(i, 0));
@@ -74,7 +82,7 @@ std::array<double, 16> get_metrics(const MatrixXd& V, const MatrixXi& F)
         const double area = std::sqrt(
             std::clamp(s * (s - a) * (s - b) * (s - c), 0.0, std::numeric_limits<double>::max()));
 
-        if (area == 0) {
+        if (area == 0 || s == 0) {
             metrics[Metrics::has_zero_area] = 1;
             continue;
         }
