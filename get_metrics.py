@@ -9,8 +9,22 @@ import os
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
-import cProfile
-import re
+use_pymeme = True
+# try to import pymeme
+if use_pymeme:
+    try:
+        import pymeme
+        use_pymeme = True
+        print("Using pymeme for metric computation.")
+    except ImportError:
+        use_pymeme = False
+        print("pymeme not found, using Python implementation.")
+        pass
+else:
+    print("Using Python implementation for metric computation.")
+
+# import cProfile
+# import re
 
 """
 Get mesh quality metrics for triangular meshes stored as .vtu files.
@@ -35,26 +49,37 @@ For running on Greene Cluster:
     python3 -m pip install libigl
     pip install pandas meshio
 
+Installing pymeme (optional):
+    mkdir build
+    cd build
+    cmake .. -DCMAKE_BUILD_TYPE=Release
+    make -j4
+    copy app/pymeme... to the project folder
+
 """
 
-
-metrics_names = [
-    "min_angle",
-    "max_angle",
-    "avg_angle",
-    "min_radius_ratio",
-    "max_radius_ratio",
-    "avg_radius_ratio",
-    "min_shape_quality",
-    "max_shape_quality",
-    "avg_shape_quality",
-    "min_edge_length",
-    "max_edge_length",
-    "avg_edge_length",
-    "#F",
-    "#V",
-]
-
+def get_metric_names():
+    if use_pymeme:
+        return pymeme.get_metric_names()
+    else:
+        return [
+            "min_angle",
+            "max_angle",
+            "avg_angle",
+            "min_radius_ratio",
+            "max_radius_ratio",
+            "avg_radius_ratio",
+            "min_shape_quality",
+            "max_shape_quality",
+            "avg_shape_quality",
+            "min_edge_length",
+            "max_edge_length",
+            "avg_edge_length",
+            "#F",
+            "#V",
+        ]
+    
+metrics_names = get_metric_names()
 
 def law_of_cosines(a, b, c):
     x = (b**2 + c**2 - a**2) / (2 * b * c)
@@ -229,7 +254,10 @@ def load_mesh(mesh_path):
 
 def mesh_metrics_compact(mesh_path):
     V, F = load_mesh(mesh_path)
-    return compute_metrics_compact(V, F)
+    if use_pymeme:
+        return pymeme.get_metrics(V, F)
+    else:
+        return compute_metrics_compact(V, F)
 
 
 def mesh_metrics_detailed(mesh_path):
