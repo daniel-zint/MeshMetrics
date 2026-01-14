@@ -5,9 +5,9 @@
 namespace meme {
 
 enum Metrics {
-    min_angle = 0,
-    max_angle = 1,
-    avg_angle = 2,
+    min_min_angle = 0,
+    max_min_angle = 1,
+    avg_min_angle = 2,
     min_ratio = 3,
     max_ratio = 4,
     avg_ratio = 5,
@@ -40,7 +40,7 @@ std::array<double, 16> get_metrics(const MatrixXd& V, const MatrixXi& F)
     for (double& m : metrics) {
         m = 0;
     }
-    metrics[Metrics::min_angle] = std::numeric_limits<double>::max();
+    metrics[Metrics::min_min_angle] = std::numeric_limits<double>::max();
     metrics[Metrics::min_ratio] = std::numeric_limits<double>::max();
     metrics[Metrics::min_shape] = std::numeric_limits<double>::max();
     metrics[Metrics::min_edge] = std::numeric_limits<double>::max();
@@ -69,14 +69,11 @@ std::array<double, 16> get_metrics(const MatrixXd& V, const MatrixXi& F)
             law_of_cosines(a, b, c),
             law_of_cosines(b, a, c),
             law_of_cosines(c, a, b)};
+        const double min_angle = std::min(angles[0], std::min(angles[1], angles[2]));
 
-        metrics[Metrics::min_angle] = std::min(
-            metrics[Metrics::min_angle],
-            std::min(angles[0], std::min(angles[1], angles[2])));
-        metrics[Metrics::max_angle] = std::max(
-            metrics[Metrics::max_angle],
-            std::max(angles[0], std::max(angles[1], angles[2])));
-        metrics[Metrics::avg_angle] += (angles[0] + angles[1] + angles[2]);
+        metrics[Metrics::min_min_angle] = std::min(metrics[Metrics::min_min_angle], min_angle);
+        metrics[Metrics::max_min_angle] = std::max(metrics[Metrics::max_min_angle], min_angle);
+        metrics[Metrics::avg_min_angle] += min_angle;
 
         const double s = (a + b + c) * 0.5;
         const double area = std::sqrt(
@@ -107,7 +104,7 @@ std::array<double, 16> get_metrics(const MatrixXd& V, const MatrixXi& F)
         metrics[Metrics::avg_edge] += (a + b + c);
     }
 
-    metrics[Metrics::avg_angle] /= F.rows() * 3;
+    metrics[Metrics::avg_min_angle] /= F.rows();
     metrics[Metrics::avg_ratio] /= F.rows();
     metrics[Metrics::avg_shape] /= F.rows();
     metrics[Metrics::avg_edge] /= F.rows() * 3;
@@ -127,9 +124,9 @@ std::array<double, 16> get_metrics(const MatrixXd& V, const MatrixXi& F)
 std::array<std::string, 16> get_metrics_names()
 {
     return std::array<std::string, 16>{
-        "min_angle",
-        "max_angle",
-        "avg_angle",
+        "min_min_angle",
+        "max_min_angle",
+        "avg_min_angle",
         "min_ratio",
         "max_ratio",
         "avg_ratio",
