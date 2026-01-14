@@ -8,19 +8,22 @@ enum Metrics {
     min_min_angle = 0,
     max_min_angle = 1,
     avg_min_angle = 2,
-    min_ratio = 3,
-    max_ratio = 4,
-    avg_ratio = 5,
-    min_shape = 6,
-    max_shape = 7,
-    avg_shape = 8,
-    min_edge = 9,
-    max_edge = 10,
-    avg_edge = 11,
-    num_f = 12,
-    num_v = 13,
-    has_zero_area = 14,
-    has_zero_edge = 15
+    min_max_angle = 3,
+    max_max_angle = 4,
+    avg_max_angle = 5,
+    min_ratio = 6,
+    max_ratio = 7,
+    avg_ratio = 8,
+    min_shape = 9,
+    max_shape = 10,
+    avg_shape = 11,
+    min_edge = 12,
+    max_edge = 13,
+    avg_edge = 14,
+    num_f = 15,
+    num_v = 16,
+    has_zero_area = 17,
+    has_zero_edge = 18
 };
 
 double law_of_cosines(const double& a, const double& b, const double& c)
@@ -30,17 +33,18 @@ double law_of_cosines(const double& a, const double& b, const double& c)
     return std::acos(x) * (180.0 / M_PI);
 }
 
-std::array<double, 16> get_metrics(const MatrixXd& V, const MatrixXi& F)
+std::array<double, 19> get_metrics(const MatrixXd& V, const MatrixXi& F)
 {
     if (F.cols() != 3) {
         throw("F has not the expected number of cols. F.cols() = " + F.cols());
     }
 
-    std::array<double, 16> metrics;
+    std::array<double, 19> metrics;
     for (double& m : metrics) {
         m = 0;
     }
     metrics[Metrics::min_min_angle] = std::numeric_limits<double>::max();
+    metrics[Metrics::min_max_angle] = std::numeric_limits<double>::max();
     metrics[Metrics::min_ratio] = std::numeric_limits<double>::max();
     metrics[Metrics::min_shape] = std::numeric_limits<double>::max();
     metrics[Metrics::min_edge] = std::numeric_limits<double>::max();
@@ -70,10 +74,14 @@ std::array<double, 16> get_metrics(const MatrixXd& V, const MatrixXi& F)
             law_of_cosines(b, a, c),
             law_of_cosines(c, a, b)};
         const double min_angle = std::min(angles[0], std::min(angles[1], angles[2]));
+        const double max_angle = std::max(angles[0], std::max(angles[1], angles[2]));
 
         metrics[Metrics::min_min_angle] = std::min(metrics[Metrics::min_min_angle], min_angle);
         metrics[Metrics::max_min_angle] = std::max(metrics[Metrics::max_min_angle], min_angle);
         metrics[Metrics::avg_min_angle] += min_angle;
+        metrics[Metrics::min_max_angle] = std::min(metrics[Metrics::min_max_angle], max_angle);
+        metrics[Metrics::max_max_angle] = std::max(metrics[Metrics::max_max_angle], max_angle);
+        metrics[Metrics::avg_max_angle] += max_angle;
 
         const double s = (a + b + c) * 0.5;
         const double area = std::sqrt(
@@ -105,6 +113,7 @@ std::array<double, 16> get_metrics(const MatrixXd& V, const MatrixXi& F)
     }
 
     metrics[Metrics::avg_min_angle] /= F.rows();
+    metrics[Metrics::avg_max_angle] /= F.rows();
     metrics[Metrics::avg_ratio] /= F.rows();
     metrics[Metrics::avg_shape] /= F.rows();
     metrics[Metrics::avg_edge] /= F.rows() * 3;
@@ -121,12 +130,15 @@ std::array<double, 16> get_metrics(const MatrixXd& V, const MatrixXi& F)
     return metrics;
 }
 
-std::array<std::string, 16> get_metrics_names()
+std::array<std::string, 19> get_metrics_names()
 {
-    return std::array<std::string, 16>{
+    return std::array<std::string, 19>{
         "min_min_angle",
         "max_min_angle",
         "avg_min_angle",
+        "min_max_angle",
+        "max_max_angle",
+        "avg_max_angle",
         "min_ratio",
         "max_ratio",
         "avg_ratio",

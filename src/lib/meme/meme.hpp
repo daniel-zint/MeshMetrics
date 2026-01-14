@@ -11,8 +11,8 @@ using Vector3d = Eigen::Vector3d;
 using MatrixXd = Eigen::MatrixXd;
 using MatrixXi = Eigen::MatrixXi;
 
-std::array<double, 16> get_metrics(const MatrixXd& V, const MatrixXi& F);
+std::array<double, 19> get_metrics(const MatrixXd& V, const MatrixXi& F);
 
-std::array<std::string, 16> get_metrics_names();
+std::array<std::string, 19> get_metrics_names();
 
 } // namespace meme
