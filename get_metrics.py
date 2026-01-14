@@ -1,5 +1,6 @@
 import igl
-from line_profiler import profile
+
+# from line_profiler import profile
 import numpy as np
 import meshio
 import pandas as pd
