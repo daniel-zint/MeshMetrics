@@ -341,6 +341,7 @@ if __name__ == "__main__":
 
         non_empty_mesh_files = 0
         all_results = []
+        all_names = []
 
         if num_jobs > 1:
             print(f"Using {num_jobs} parallel jobs.")
@@ -360,6 +361,7 @@ if __name__ == "__main__":
                         continue
                     non_empty_mesh_files += 1
                     all_results.append(metrics)
+                    all_names.append(mesh_file)
         else:
             print("Using single thread.")
             for mesh_file in mesh_files:
@@ -372,8 +374,11 @@ if __name__ == "__main__":
                     continue
                 non_empty_mesh_files += 1
                 all_results.append(metrics)
-
+                all_names.append(mesh_file)
         print(f"Evaluated {non_empty_mesh_files} non-empty mesh files.")
+        metrics_names.append("mesh_file")
+        for i in range(len(all_results)):
+            all_results[i].append(all_names[i])
         df = pd.DataFrame(all_results, columns=metrics_names)
         # print first 5 rows of dataframe
         print(df.head())
