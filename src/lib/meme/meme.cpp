@@ -26,6 +26,13 @@ enum Metrics {
     has_zero_edge = 18
 };
 
+enum MetricsPerTri {
+    min_angle = 0,
+    max_angle = 1,
+    ratio = 2,
+    shape = 3,
+};
+
 double law_of_cosines(const double& a, const double& b, const double& c)
 {
     double x = (b * b + c * c - a * a) / (2 * b * c);
@@ -130,6 +137,91 @@ std::array<double, 19> get_metrics(const MatrixXd& V, const MatrixXi& F)
     return metrics;
 }
 
+MatrixXd get_metrics_per_tri(const MatrixXd& V, const MatrixXi& F)
+{
+    if (F.cols() != 3) {
+        throw("F has not the expected number of cols. F.cols() = " + F.cols());
+    }
+
+    MatrixXd metrics;
+    metrics.resize(F.rows(), 4);
+    metrics.fill(0);
+    metrics.row(MetricsPerTri::max_angle).fill(180);
+
+    if (F.rows() == 0) {
+        return metrics;
+    }
+
+    for (size_t i = 0; i < F.rows(); ++i) {
+        const Vector3d& v0 = V.row(F(i, 0));
+        const Vector3d& v1 = V.row(F(i, 1));
+        const Vector3d& v2 = V.row(F(i, 2));
+        const double a = (v1 - v0).norm();
+        const double b = (v2 - v1).norm();
+        const double c = (v0 - v2).norm();
+
+        if (a == 0 || b == 0 || c == 0) {
+            continue;
+        }
+
+        std::array<double, 3> angles = {
+            law_of_cosines(a, b, c),
+            law_of_cosines(b, a, c),
+            law_of_cosines(c, a, b)};
+        const double min_angle = std::min(angles[0], std::min(angles[1], angles[2]));
+        const double max_angle = std::max(angles[0], std::max(angles[1], angles[2]));
+
+        metrics(i, MetricsPerTri::min_angle) = min_angle;
+        metrics(i, MetricsPerTri::max_angle) = max_angle;
+
+        const double s = (a + b + c) * 0.5;
+        const double area = std::sqrt(
+            std::clamp(s * (s - a) * (s - b) * (s - c), 0.0, std::numeric_limits<double>::max()));
+
+        if (area == 0 || s == 0) {
+            continue;
+        }
+
+        const double inradius = area / s;
+        const double circumradius = (a * b * c) / (4.0 * area);
+        const double radius_ratio = 2.0 * inradius / circumradius;
+        const double shape_quality = (4.0 * std::sqrt(3) * area) / (a * a + b * b + c * c);
+
+        metrics(i, MetricsPerTri::ratio) = radius_ratio;
+        metrics(i, MetricsPerTri::shape) = shape_quality;
+    }
+
+    return metrics;
+}
+
+VectorXd get_relative_edge_lengths(const MatrixXd& V, const MatrixXi& F)
+{
+    if (F.cols() != 3) {
+        throw("F has not the expected number of cols. F.cols() = " + F.cols());
+    }
+
+    // edges relative to bbox
+    const auto bbox_max = V.colwise().maxCoeff();
+    const auto bbox_min = V.colwise().minCoeff();
+    const double diag = (bbox_max - bbox_min).norm();
+    const double inv_diag = 1. / diag;
+
+    MatrixXi E;
+    igl::edges(F, E);
+
+    VectorXd lengths;
+    lengths.resize(E.rows());
+
+    for (size_t i = 0; i < E.rows(); ++i) {
+        const Vector3d& p0 = V.row(E(i, 0));
+        const Vector3d& p1 = V.row(E(i, 1));
+        const double l = (p1 - p0).norm();
+        lengths[i] = l * inv_diag;
+    }
+
+    return lengths;
+}
+
 std::array<std::string, 19> get_metrics_names()
 {
     return std::array<std::string, 19>{
@@ -152,6 +244,11 @@ std::array<std::string, 19> get_metrics_names()
         "#V",
         "has_zero_area",
         "has_zero_edge"};
+}
+
+std::array<std::string, 4> get_metrics_names_per_tri()
+{
+    return std::array<std::string, 4>{"min_angle", "max_angle", "ratio", "shape"};
 }
 
 } // namespace meme

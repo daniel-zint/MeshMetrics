@@ -12,4 +12,13 @@ PYBIND11_MODULE(pymeme, m, py::mod_gil_not_used())
     m.doc() = "Triangle Mesh Metrics"; // optional module docstring
     m.def("get_metrics", &meme::get_metrics, "Get mesh metrics");
     m.def("get_metric_names", &meme::get_metrics_names, "Get names for all mesh metrics");
+    m.def("get_metrics_per_tri", &meme::get_metrics_per_tri, "Get mesh metrics per triangle");
+    m.def(
+        "get_metric_names_per_tri",
+        &meme::get_metrics_names_per_tri,
+        "Get names for all per-triangle metrics");
+    m.def(
+        "get_relative_edge_lenghts",
+        &meme::get_relative_edge_lengths,
+        "Get edge lengths realtive to bbox diagonal");
 }
