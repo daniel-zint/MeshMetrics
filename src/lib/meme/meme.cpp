@@ -40,6 +40,15 @@ double law_of_cosines(const double& a, const double& b, const double& c)
     return std::acos(x) * (180.0 / M_PI);
 }
 
+double atan_angle(const Vector3d& v0, const Vector3d& v1, const Vector3d& v2)
+{
+    const Vector3d e0 = (v1 - v0);
+    const Vector3d e1 = (v2 - v0);
+    const double cross = e0.cross(e1).norm();
+    const double dot = e0.dot(e1);
+    return std::atan2(cross, dot);
+}
+
 std::array<double, 19> get_metrics(const MatrixXd& V, const MatrixXi& F)
 {
     if (F.cols() != 3) {
@@ -76,12 +85,23 @@ std::array<double, 19> get_metrics(const MatrixXd& V, const MatrixXi& F)
             continue;
         }
 
+        // std::array<double, 3> angles = {
+        //     law_of_cosines(a, b, c),
+        //     law_of_cosines(b, a, c),
+        //     law_of_cosines(c, a, b)};
+        // const double min_angle = std::min(angles[0], std::min(angles[1], angles[2]));
+        // const double max_angle = std::max(angles[0], std::max(angles[1], angles[2]));
+
         std::array<double, 3> angles = {
-            law_of_cosines(a, b, c),
-            law_of_cosines(b, a, c),
-            law_of_cosines(c, a, b)};
+            atan_angle(v0, v1, v2),
+            atan_angle(v1, v2, v0),
+            atan_angle(v2, v0, v1)};
         const double min_angle = std::min(angles[0], std::min(angles[1], angles[2]));
         const double max_angle = std::max(angles[0], std::max(angles[1], angles[2]));
+
+        // if (min_angle == 0) {
+        //     std::cout << "DEBUG " << min_angle << std::endl;
+        // }
 
         metrics[Metrics::min_min_angle] = std::min(metrics[Metrics::min_min_angle], min_angle);
         metrics[Metrics::max_min_angle] = std::max(metrics[Metrics::max_min_angle], min_angle);

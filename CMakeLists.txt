@@ -45,6 +45,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Dependencies
 include(libigl)
 include(pybind11)
+include(mshio)
 
 # Core library
 add_library(mesh_metrics)
@@ -69,6 +70,7 @@ target_compile_features(mesh_metrics PUBLIC cxx_std_17)
 target_link_libraries(mesh_metrics PUBLIC
     Eigen3::Eigen
     igl::core
+    mshio::mshio
 )
 
 if(MSVC)
